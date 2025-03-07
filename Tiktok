@@ -1,22 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login with TikTok</title>
-</head>
-<body>
+import requests
+import json
+import os
+import git
 
-    <h1>Login with TikTok</h1>
-    <a id="tiktok-login" href="#">Login with TikTok</a>
+# TikTok API Setup
+TIKTOK_API_KEY = "YOUR_TIKTOK_API_KEY"
+TIKTOK_USER = "tiktok_username"
 
-    <script>
-        const CLIENT_KEY = "your_client_key"; // Replace with your TikTok Client Key
-        const REDIRECT_URI = "https://yourwebsite.com/auth"; // Replace with your Redirect URL
+# GitHub Setup
+GITHUB_REPO_PATH = "path/to/your/local/repository"
+GITHUB_REPO_URL = "https://github.com/your-username/your-repo.git"
 
-        document.getElementById("tiktok-login").href = 
-            `https://www.tiktok.com/auth/authorize/?client_key=${CLIENT_KEY}&response_type=code&scope=user.info.basic&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-    </script>
+def fetch_tiktok_data():
+    """Fetch TikTok videos from a user"""
+    url = f"https://api.tiktok.com/v2/video/list?username={TIKTOK_USER}&api_key={TIKTOK_API_KEY}"
+    response = requests.get(url)
 
-</body>
-</html>
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching TikTok data: {response.status_code}")
+        return None
+
+def save_to_file(data):
+    """Save TikTok data to a JSON file"""
+    file_path = os.path.join(GITHUB_REPO_PATH, "tiktok_data.json")
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+    print("TikTok data saved to tiktok_data.json")
+
+def push_to_github():
+    """Push updated data to GitHub"""
+    repo = git.Repo(GITHUB_REPO_PATH)
+    repo.git.add("tiktok_data.json")
+    repo.index.commit("Updated TikTok data")
+    origin = repo.remote(name="origin")
+    origin.push()
+    print("Pushed TikTok data to GitHub")
+
+if __name__ == "__main__":
+    data = fetch_tiktok_data()
+    if data:
+        save_to_file(data)
+        push_to_github()
+
